@@ -65,9 +65,6 @@ services:
         condition: service_healthy
       backend:
         condition: service_started
-    volumes:
-      - ./mcp-server:/app/mcp-server
-      - /app/node_modules
     networks:
       - vendedores-network
 
