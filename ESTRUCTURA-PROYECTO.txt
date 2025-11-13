@@ -1,0 +1,285 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                  PROYECTO VENDEDORES AMBULANTES - ESTRUCTURA                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📦 PROYECTO-VENDEDORES/
+│
+├── 📄 docker-compose.yml               ⚙️  Orquestación de servicios
+├── 📄 README.md                        📖 Documentación completa
+├── 📄 INICIO-RAPIDO.md                 🚀 Guía de inicio
+├── 📄 RESUMEN-COMPLETO.md              📋 Resumen ejecutivo
+├── 📄 CHECKLIST-PROGRESO.md            ✅ Lista de tareas
+├── 📄 .gitignore                       🚫 Archivos ignorados
+├── 📄 test-api.sh                      🧪 Script de pruebas
+├── 📄 Vendedores-API.postman_collection.json  📮 Colección Postman
+│
+├── 📁 backend/                         🔧 API REST Node.js
+│   ├── 📄 Dockerfile                   🐳 Imagen Docker
+│   ├── 📄 package.json                 📦 Dependencias
+│   ├── 📄 .env.example                 🔐 Variables de entorno
+│   │
+│   └── 📁 src/
+│       ├── 📄 server.js                ⚡ Servidor Express
+│       ├── 📄 seed.js                  🌱 Datos de prueba
+│       │
+│       ├── 📁 config/
+│       │   └── 📄 database.js          💾 Configuración MongoDB
+│       │
+│       ├── 📁 models/
+│       │   ├── 📄 User.js              👤 Modelo Usuarios
+│       │   ├── 📄 Vendedor.js          🛒 Modelo Vendedores (Geo)
+│       │   ├── 📄 Producto.js          📦 Modelo Productos
+│       │   └── 📄 Categoria.js         🏷️  Modelo Categorías
+│       │
+│       ├── 📁 middleware/
+│       │   └── 📄 auth.js              🔒 Autenticación JWT
+│       │
+│       └── 📁 routes/
+│           ├── 📄 auth.js              🔑 Login/Register
+│           ├── 📄 vendedores.js        👥 CRUD Vendedores
+│           └── 📄 productos.js         📦 CRUD Productos
+│
+├── 📁 frontend/                        💻 PENDIENTE (Día 3-4)
+│   ├── 📄 Dockerfile
+│   ├── 📄 package.json
+│   ├── 📄 index.html
+│   ├── 📄 vite.config.js
+│   └── 📁 src/
+│       ├── 📄 App.jsx
+│       ├── 📄 main.jsx
+│       ├── 📁 components/
+│       ├── 📁 pages/
+│       └── 📁 services/
+│
+└── 📁 mcp-server/                      🤖 PENDIENTE (Día 5)
+    ├── 📄 Dockerfile
+    ├── 📄 package.json
+    └── 📁 src/
+        └── 📄 index.js
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           ENDPOINTS DE LA API                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🔓 PÚBLICOS (No requieren autenticación)
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ POST   /api/auth/register           Registrar nuevo usuario                  │
+│ POST   /api/auth/login              Iniciar sesión                           │
+│ GET    /api/vendedores              Listar todos los vendedores              │
+│ GET    /api/vendedores/cercanos     Buscar vendedores por GPS ⭐             │
+│ GET    /api/vendedores/:id          Detalle de un vendedor                   │
+│ GET    /api/productos               Listar todos los productos               │
+│ GET    /api/productos/:id           Detalle de un producto                   │
+│ GET    /api/productos/categoria/:id Productos de una categoría               │
+│ GET    /api/productos/categorias/all Listar categorías                       │
+│ GET    /api/health                  Health check                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+🔒 PRIVADOS (Requieren token JWT)
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ GET    /api/auth/me                    Obtener usuario actual                │
+│ PUT    /api/vendedores/:id             Actualizar perfil vendedor            │
+│ PUT    /api/vendedores/:id/ubicacion   Actualizar GPS del vendedor ⭐        │
+│ PUT    /api/vendedores/:id/toggle-disponibilidad  Toggle activo/inactivo ⭐  │
+│ POST   /api/productos                  Crear producto (solo vendedor)        │
+│ PUT    /api/productos/:id              Actualizar producto (solo dueño)      │
+│ DELETE /api/productos/:id              Eliminar producto (solo dueño)        │
+│ POST   /api/productos/categorias       Crear categoría (solo admin)          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          BASE DE DATOS MONGODB                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📊 COLECCIÓN: users                                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • _id (ObjectId)                                                            │
+│ • nombre (String)                                                           │
+│ • email (String) [unique, indexed]                                          │
+│ • password (String) [hashed con bcrypt]                                     │
+│ • telefono (String)                                                         │
+│ • role (String) [vendedor, comprador, admin]                                │
+│ • activo (Boolean)                                                          │
+│ • timestamps (createdAt, updatedAt)                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📍 COLECCIÓN: vendedores (con índice geoespacial 2dsphere) ⭐              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • _id (ObjectId)                                                            │
+│ • userId (ObjectId → users)                                                 │
+│ • nombreNegocio (String)                                                    │
+│ • descripcion (String)                                                      │
+│ • foto (String URL)                                                         │
+│ • disponible (Boolean) [toggle para activo/inactivo] ⭐                     │
+│ • ubicacionActual (GeoJSON Point) [longitude, latitude] ⭐                  │
+│ • productos ([ObjectId] → productos)                                        │
+│ • calificacion (Number 0-5)                                                 │
+│ • totalCalificaciones (Number)                                              │
+│ • verificado (Boolean)                                                      │
+│ • activo (Boolean)                                                          │
+│ • timestamps                                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📦 COLECCIÓN: productos                                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • _id (ObjectId)                                                            │
+│ • vendedorId (ObjectId → vendedores)                                        │
+│ • nombre (String) [indexed para búsqueda de texto]                          │
+│ • categoria (ObjectId → categorias)                                         │
+│ • descripcion (String) [indexed para búsqueda de texto]                     │
+│ • precio (Number)                                                           │
+│ • unidad (String) [kg, libra, unidad, docena, caja, bolsa, litro]          │
+│ • foto (String URL)                                                         │
+│ • disponible (Boolean)                                                      │
+│ • stock (Number)                                                            │
+│ • timestamps                                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🏷️  COLECCIÓN: categorias                                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • _id (ObjectId)                                                            │
+│ • nombre (String) [unique]                                                  │
+│ • icono (String) [emoji]                                                    │
+│ • color (String) [código hexadecimal]                                       │
+│ • descripcion (String)                                                      │
+│ • activo (Boolean)                                                          │
+│ • timestamps                                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          DATOS SEMILLA INCLUIDOS                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+👥 4 USUARIOS
+  ├── juan@test.com      / 123456  [Comprador]
+  ├── maria@test.com     / 123456  [Vendedor - Frutas Frescas María]
+  ├── carlos@test.com    / 123456  [Vendedor - Verduras Don Carlos]
+  └── ana@test.com       / 123456  [Vendedor - Comidas Doña Ana]
+
+🛒 3 VENDEDORES (con ubicaciones reales en Guatemala City)
+  ├── Frutas Frescas María     (-90.5069, 14.6349) [Disponible]
+  ├── Verduras Don Carlos      (-90.5100, 14.6300) [Disponible]
+  └── Comidas Doña Ana         (-90.5150, 14.6380) [No disponible]
+
+📦 8 PRODUCTOS (distribuidos entre los 3 vendedores)
+  ├── Manzanas Rojas, Bananos, Naranjas (María)
+  ├── Tomates, Aguacates, Zanahorias (Carlos)
+  └── Tacos, Atol de Elote (Ana)
+
+🏷️  8 CATEGORÍAS
+  ├── 🍎 Frutas
+  ├── 🥬 Verduras
+  ├── 🍲 Comida Preparada
+  ├── 🥤 Bebidas
+  ├── 🎨 Artesanías
+  ├── 👕 Ropa
+  ├── 🌺 Flores
+  └── 📦 Otros
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         TECNOLOGÍAS UTILIZADAS                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Backend:
+  • Node.js 20                    • Express 4.18
+  • MongoDB 7.0                   • Mongoose 8.0
+  • JWT (jsonwebtoken)            • bcryptjs
+  • CORS                          • dotenv
+
+DevOps:
+  • Docker                        • Docker Compose
+
+Testing:
+  • Bash scripts                  • Postman Collection
+
+Próximas tecnologías (Día 3-7):
+  • React 18                      • Vite
+  • Tailwind CSS                  • Google Maps API
+  • @react-google-maps/api        • Axios
+  • React Router                  • MCP SDK
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           COMANDOS PRINCIPALES                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🚀 Iniciar servicios:
+  $ docker-compose up -d
+
+🌱 Poblar base de datos:
+  $ docker-compose exec backend node src/seed.js
+
+🧪 Probar API:
+  $ ./test-api.sh
+
+📋 Ver logs:
+  $ docker-compose logs -f backend
+
+🔄 Reiniciar backend:
+  $ docker-compose restart backend
+
+🛑 Detener servicios:
+  $ docker-compose down
+
+🧹 Limpiar todo (incluye BD):
+  $ docker-compose down -v
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         PRÓXIMOS PASOS RECOMENDADOS                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+DÍA 3: Frontend - Estructura y Autenticación
+  ✓ Setup React + Vite + Tailwind
+  ✓ Login y Registro
+  ✓ Context para autenticación
+  ✓ Layout básico
+
+DÍA 4: Frontend - Mapa y Funcionalidades
+  ✓ Integración Google Maps
+  ✓ Vista de comprador (mapa interactivo)
+  ✓ Dashboard de vendedor
+  ✓ Gestión de productos
+
+DÍA 5: MCP Server + PWA
+  ✓ Servidor MCP básico
+  ✓ manifest.json y Service Worker
+  ✓ Instalable como app
+
+DÍA 6: Testing y Optimización
+  ✓ Pruebas en diferentes dispositivos
+  ✓ Corrección de bugs
+  ✓ Optimización de performance
+
+DÍA 7: Despliegue
+  ✓ Deploy backend (Railway/Render)
+  ✓ Deploy frontend (Vercel)
+  ✓ MongoDB Atlas
+  ✓ Documentación final
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              ESTADO ACTUAL                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+✅ Backend:           100% Completo (Día 1-2)
+⏳ Frontend:          0% Pendiente (Día 3-4)
+⏳ MCP Server:        0% Pendiente (Día 5)
+⏳ PWA:               0% Pendiente (Día 5)
+⏳ Testing:           0% Pendiente (Día 6)
+⏳ Despliegue:        0% Pendiente (Día 7)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROGRESO TOTAL: ████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  40%
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+¡Éxito con tu proyecto! 🚀

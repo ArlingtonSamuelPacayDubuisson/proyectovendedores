@@ -1,0 +1,44 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: vendedores-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: vendedores_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - vendedores-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vendedores-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/vendedores_db?authSource=admin
+      JWT_SECRET: tu_secreto_super_seguro_cambialo_en_produccion
+      JWT_EXPIRE: 7d
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - vendedores-network
+
+networks:
+  vendedores-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

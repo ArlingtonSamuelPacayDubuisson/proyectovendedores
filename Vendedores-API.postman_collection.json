@@ -1,0 +1,357 @@
+{
+  "info": {
+    "name": "Vendedores Ambulantes API",
+    "description": "API REST para plataforma de vendedores ambulantes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vendedorId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"123456\",\n  \"telefono\": \"12345678\",\n  \"role\": \"comprador\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login Vendedor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token) {",
+                  "    pm.collectionVariables.set('token', response.token);",
+                  "    pm.collectionVariables.set('vendedorId', response.user.vendedorId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"maria@test.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vendedores",
+      "item": [
+        {
+          "name": "Get All Vendedores",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vendedores",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendedores"]
+            }
+          }
+        },
+        {
+          "name": "Get Vendedores Cercanos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vendedores/cercanos?longitude=-90.5069&latitude=14.6349&maxDistance=5000",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendedores", "cercanos"],
+              "query": [
+                {
+                  "key": "longitude",
+                  "value": "-90.5069"
+                },
+                {
+                  "key": "latitude",
+                  "value": "14.6349"
+                },
+                {
+                  "key": "maxDistance",
+                  "value": "5000"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Vendedor by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vendedores/{{vendedorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendedores", "{{vendedorId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Vendedor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreNegocio\": \"Frutas Premium María\",\n  \"descripcion\": \"Las mejores frutas importadas y locales\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vendedores/{{vendedorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendedores", "{{vendedorId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Ubicacion",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"longitude\": -90.5100,\n  \"latitude\": 14.6300\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vendedores/{{vendedorId}}/ubicacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendedores", "{{vendedorId}}", "ubicacion"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Disponibilidad",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendedores/{{vendedorId}}/toggle-disponibilidad",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendedores", "{{vendedorId}}", "toggle-disponibilidad"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Productos",
+      "item": [
+        {
+          "name": "Get All Productos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos"]
+            }
+          }
+        },
+        {
+          "name": "Get Producto by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/productos/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Producto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Manzanas Premium\",\n  \"categoria\": \"CATEGORIA_ID_AQUI\",\n  \"descripcion\": \"Manzanas importadas de calidad\",\n  \"precio\": 25,\n  \"unidad\": \"libra\",\n  \"stock\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos"]
+            }
+          }
+        },
+        {
+          "name": "Update Producto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"precio\": 20,\n  \"disponible\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/productos/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Producto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Categorias",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/productos/categorias/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", "categorias", "all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    }
+  ]
+}
