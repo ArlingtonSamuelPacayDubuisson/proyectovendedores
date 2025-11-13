@@ -4,8 +4,8 @@
   "description": "MCP Server - Herramientas para agentes IA del marketplace",
   "main": "src/index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
   },
   "keywords": ["mcp", "ai-agents", "marketplace", "tools"],
   "author": "",
