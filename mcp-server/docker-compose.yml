@@ -70,7 +70,7 @@ services:
     tty: true
 
   # MCP Server (Herramientas para agentes IA)
-  mcp-server:
+ mcp-server:
     build:
       context: .
       dockerfile: Dockerfile.mcp
@@ -89,16 +89,5 @@ services:
         condition: service_healthy
       backend:
         condition: service_started
-    volumes:
-      - ./mcp-server:/app/mcp-server
-      - /app/node_modules
     networks:
       - vendedores-network
-
-networks:
-  vendedores-network:
-    driver: bridge
-
-volumes:
-  mongodb_data:
-    driver: local

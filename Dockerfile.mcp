@@ -1,0 +1,24 @@
+# Dockerfile para MCP Server
+FROM node:18-alpine
+
+WORKDIR /app/mcp-server
+
+# Instalar dependencias del sistema necesarias
+RUN apk add --no-cache \
+    curl \
+    git
+
+# Copiar archivos de dependencias
+COPY mcp-server/package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el código fuente
+COPY mcp-server/src ./src
+
+# Exponer puerto para el servidor MCP
+EXPOSE 3002
+
+# Comando para iniciar el servidor MCP
+CMD ["node", "src/index.js"]

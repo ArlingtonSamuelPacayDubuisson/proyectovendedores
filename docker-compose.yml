@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mongodb:
     image: mongo:7.0
@@ -13,6 +15,11 @@ services:
       - mongodb_data:/data/db
     networks:
       - vendedores-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/vendedores_db --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -29,9 +36,37 @@ services:
       JWT_SECRET: tu_secreto_super_seguro_cambialo_en_produccion
       JWT_EXPIRE: 7d
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     volumes:
       - ./backend:/app
+      - /app/node_modules
+    networks:
+      - vendedores-network
+    command: npm run dev
+
+  # MCP Server (Herramientas para agentes IA)
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: vendedores-mcp-server
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: development
+      MCP_SERVER_PORT: 3002
+      MCP_SERVER_HOST: 0.0.0.0
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/vendedores_db?authSource=admin
+      LOG_LEVEL: info
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - ./mcp-server:/app/mcp-server
       - /app/node_modules
     networks:
       - vendedores-network
@@ -42,3 +77,4 @@ networks:
 
 volumes:
   mongodb_data:
+    driver: local
