@@ -3,6 +3,8 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { PrivateRoute, PublicRoute } from './components/PrivateRoute';
+import { InstallButton } from './components/InstallButton';
+import { ConnectionStatus } from './components/ConnectionStatus';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -16,6 +18,12 @@ function App() {
       <AuthProvider>
         <div className="min-h-screen bg-gray-50">
           <Navbar />
+          
+          {/* Estado de conexión */}
+          <ConnectionStatus />
+          
+          {/* Botón de instalación PWA */}
+          <InstallButton />
           
           <Routes>
             {/* Public Routes */}

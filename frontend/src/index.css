@@ -1,9 +1,9 @@
+/* Leaflet CSS - IMPORTANTE: debe estar primero */
+@import 'leaflet/dist/leaflet.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-
 
 @layer base {
   body {
@@ -31,4 +31,9 @@
   .card {
     @apply bg-white rounded-lg shadow-md p-6;
   }
+}
+
+/* Fix para los íconos de Leaflet */
+.leaflet-default-icon-path {
+  background-image: url('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png');
 }
